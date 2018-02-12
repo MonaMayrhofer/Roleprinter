@@ -1,4 +1,3 @@
-import com.beust.klaxon.Parser
 import org.xhtmlrenderer.pdf.ITextRenderer
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -11,7 +10,6 @@ data class ItemPos(val amount: Int, val name: String, val props: Map<String, Str
 fun main(args: Array<String>) {
 
     val itemListFile = Paths.get("itemlist.txt")
-    val parser = Parser()
     val posses = Files.lines(itemListFile).map {
         val fields = it.split("x")
         val amt = fields[0].toInt()
@@ -22,17 +20,16 @@ fun main(args: Array<String>) {
         val props: MutableMap<String, String> = HashMap()
 
         var descIndex = 0
-        for(i in 0..lines.size){
+        for(i in 1..lines.size){
             if(!lines[i].contains(":")){
                 descIndex = i
                 break
             }
             val linefields = lines[i].split(":")
-            props[fields[0]] = fields[1]
+            props[linefields[0]] = linefields[1]
         }
 
         val description = lines.drop(descIndex).joinToString()
-
         ItemPos(amt, name, props, description)
     }.collect(Collectors.toList())
 
@@ -40,7 +37,7 @@ fun main(args: Array<String>) {
         Array(pos.amount) {pos}.toList()
     }.map {
                 newPageHtml(it)
-            }
+    }
 
     val path = Paths.get("out.pdf")
     val os = path.toFile().outputStream()
@@ -57,13 +54,50 @@ fun main(args: Array<String>) {
             renderer.writeNextDocument()
         }
         renderer.finishPDF()
-
-        println("Sample file with " + inputs.size + " documents rendered as PDF to " + os)
     }
 }
 
 private fun newPageHtml(item: ItemPos): String {
-    return "<html>" +
-            "    <h1>" + item.name +
-            "</h1></html>"
+    val bld = StringBuilder()
+    bld.append("""
+        <html>
+            <head>
+                <style>
+                    @page{
+                        size: 63.5mm 88.9mm;
+                        margin: 0;
+                    }
+                    h1{
+                        width: 100%;
+                        text-align: center;
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>${item.name}</h1>
+                <table> """)
+            for (a in item.props) {
+                bld.append(
+                """
+                <tr>
+                    <td>
+                        ${a.key}
+                    </td>
+                    <td>
+                        ${a.value}
+                    </td>
+                </tr>
+                """)
+            }
+    bld.append(
+     """
+            </table>
+            <p>
+                ${item.description}
+            </p>
+        </body>
+    </html>
+    """)
+
+    return bld.toString()
 }
