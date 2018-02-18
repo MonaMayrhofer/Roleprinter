@@ -144,3 +144,4 @@ gradle-app.setting
 
 # Output files
 *.pdf
+font/
