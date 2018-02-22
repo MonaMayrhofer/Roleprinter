@@ -30,10 +30,8 @@ import java.util.stream.Collectors
 data class ItemPos(val amount: Int, val name: String, val props: List<Pair<String, String>>, val description: String)
 data class Settings(val titleFont: String, val titleSize: Int, val propertyFont: String, val propertySize: Int, val propertySpacing: Int,
                     val descriptionFont: String, val descriptionSize: Int)
-data class PropertyTemplate(val name: String, val needed: Boolean)
-data class ItemTemplate(public val name: String, public val props: Map<String, PropertyTemplate>){
-
-}
+data class PropertyTemplate(val name: String, val needed: Boolean, val default: String?)
+data class ItemTemplate(val name: String, val props: Map<String, PropertyTemplate>)
 
 fun Iterator<String>.nextTrimmed(): String{
     return next().trim()
@@ -50,29 +48,34 @@ fun Iterator<String>.nextNotEmpty(): String{
 
 class PdfCreator {
 
-    fun run(){
+    fun run(inFileName: String, outFileName: String){
         val settings = Settings("Metamorphous-Regular", 14,
                 "BadScript-Regular", 11, 9,
                 "ArimaMadurai-Regular", 9
         )
 
         //------------- LOAD ITEMS -------------
-        val itemListFile = Paths.get("itemlist.txt")
+        val itemListFile = Paths.get(inFileName)
 
         val templates = getItemTemplates(Paths.get("templates"))
         val inputs = createHTML(getItemPositions(itemListFile, Paths.get("items"), templates), settings)
-
-        createPdf(inputs, Paths.get("out.pdf"))
+        createPdf(inputs, Paths.get(outFileName))
+        println("Transformed $inFileName into $outFileName")
     }
 
     private fun getItemTemplates(templateDirectory: Path): Map<String, ItemTemplate> {
         return templateDirectory.toFile().traverseFiles().filter { it.extension == "tmpl" }.map {
             val props = it.readLines().map {line ->
-                val short = line.substringBefore(": ").trim()
-                var name = line.substringAfter(": ").trim()
+                val short = line.substringBefore("=").trim()
+                var name = line.substringAfter("=").trim()
                 val needed = line.endsWith('*')
                 name = name.substringBefore('*').trim()
-                short to PropertyTemplate(name, needed)
+                var default : String? = null
+                if(name.contains(":")){
+                    default = name.substringAfter(":")
+                    name = name.substringBefore(":")
+                }
+                short to PropertyTemplate(name, needed, default)
             }.toMap()
             it.nameWithoutExtension to ItemTemplate(it.name, props)
         }.toMap()
@@ -83,16 +86,22 @@ class PdfCreator {
      */
     private fun getItemPositions(itemListFile: Path, itemDirectory: Path, templates: Map<String, ItemTemplate>): List<ItemPos>{
         return Files.lines(itemListFile).map {
-            val fields = it.split("x")
-            val amt = fields[0].toInt()
-            val itemName = fields[1].trim()
+            // val fields = it.split("x")
+            val amt = it.substringBefore("x").toInt()
+            val itemName = it.substringAfter("x").trim()
+            println("Parsing: $it -> $itemName")
             val lines = Files.readAllLines(itemDirectory.resolve("$itemName.item")).iterator()
             var name = lines.nextNotEmpty()
             var template: ItemTemplate? = null
             if(name.startsWith("<") && name.endsWith(">")){
-                template = templates[name.substring(1, name.length-1)]
+                val templatename = name.trim('<','>')
+                if(!templates.containsKey(templatename)){
+                    throw IllegalStateException("Template couldn't be found: $templatename")
+                }
+                template = templates[templatename]
                 name=lines.nextNotEmpty()
             }
+            val defaultFields = template?.props?.values?.filter { it.default != null }?.map { it.name to it.default!! }
             val neededFields = template?.props?.values?.filter { it.needed }?.map { it.name }?.toMutableList()
             val props: MutableList<Pair<String, String>> = ArrayList()
 
@@ -111,12 +120,18 @@ class PdfCreator {
                 neededFields?.remove(propname)
                 props.add(propname to lineFields[1])
             }
-            props.sortBy { it.first }
 
             if(neededFields != null && !neededFields.isEmpty()){
                 throw IllegalStateException("Not all needed Fields of ${template?.name} are satisfied: $neededFields in $itemName")
             }
 
+            defaultFields?.forEach { (defaultField, defaultValue) ->
+                if(props.none { it.first == defaultField }){
+                    props.add(defaultField to defaultValue)
+                }
+            }
+
+            props.sortBy { it.first }
             while (lines.hasNext())
                 description += "<br/>" + lines.next()
             ItemPos(amt, name, props, description)

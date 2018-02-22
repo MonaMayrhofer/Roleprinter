@@ -19,5 +19,5 @@
 
 
 fun main(args: Array<String>) {
-    PdfCreator().run()
+    PdfCreator().run(args.getOrElse(0, {"itemlist.txt"}), args.getOrElse(1, {"out.pdf"}))
 }
