@@ -20,11 +20,13 @@
 
 import com.itextpdf.text.pdf.BaseFont
 import org.xhtmlrenderer.pdf.ITextRenderer
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 import java.util.stream.Collectors
+import kotlin.collections.HashSet
 
 
 data class ItemPos(val amount: Int, val name: String, val props: List<Pair<String, String>>, val description: String)
@@ -46,6 +48,10 @@ fun Iterator<String>.nextNotEmpty(): String{
     }while(true)
 }
 
+fun <T> MutableList<T>.removeLast() {
+    this.removeAt(this.lastIndex)
+}
+
 class PdfCreator {
 
     fun run(inFileName: String, outFileName: String){
@@ -53,14 +59,29 @@ class PdfCreator {
                 "BadScript-Regular", 11, 9,
                 "ArimaMadurai-Regular", 9
         )
+        val itemPath = Paths.get("items")
+        val templatePath = Paths.get("templates")
+        val fontPath = Paths.get("font")
 
         //------------- LOAD ITEMS -------------
         val itemListFile = Paths.get(inFileName)
 
-        val templates = getItemTemplates(Paths.get("templates"))
-        val inputs = createHTML(getItemPositions(itemListFile, Paths.get("items"), templates), settings)
-        createPdf(inputs, Paths.get(outFileName))
+        checkItemFileDuplicates(itemPath)
+        val templates = getItemTemplates(templatePath)
+        val inputs = getItemPositions(itemListFile, itemPath, templates)
+        createPdf(inputs, Paths.get(outFileName), fontPath, settings)
         println("Transformed $inFileName into $outFileName")
+    }
+
+    private fun checkItemFileDuplicates(itemDirectory: Path) {
+        val paths = HashSet<String>()
+        itemDirectory.toFile().traverseFiles().forEach {
+            if(paths.contains(it.nameWithoutExtension)){
+                throw IOException("Double Item-Identificator: ${it.nameWithoutExtension}")
+            }
+            paths.add(it.nameWithoutExtension)
+        }
+
     }
 
     private fun getItemTemplates(templateDirectory: Path): Map<String, ItemTemplate> {
@@ -90,7 +111,9 @@ class PdfCreator {
             val amt = it.substringBefore("x").toInt()
             val itemName = it.substringAfter("x").trim()
             println("Parsing: $it -> $itemName")
-            val lines = Files.readAllLines(itemDirectory.resolve("$itemName.item")).iterator()
+            val itemFileName = "$itemName.item"
+            val itemFile = itemDirectory.toFile().traverseFiles().firstOrNull { it.name == itemFileName } ?: throw IOException("Couldn't find Item-File for \"$itemName\" -> $itemFileName")
+            val lines = Files.readAllLines(itemFile.toPath()).iterator()
             var name = lines.nextNotEmpty()
             var template: ItemTemplate? = null
             if(name.startsWith("<") && name.endsWith(">")){
@@ -138,21 +161,23 @@ class PdfCreator {
         }.collect(Collectors.toList())
     }
 
+    /*
     private fun createHTML(itemPositions: List<ItemPos>, settings: Settings): List<Pair<ItemPos, String>>{
         return itemPositions.flatMap {pos ->
             Array(pos.amount) {pos to newPageHtml(pos, settings)}.toList()
         }
     }
+    */
 
     // --------------- PDF STUFF -------------
-    private fun createPdf(inputs: List<Pair<ItemPos, String>>, outputFile: Path){
+    private fun createPdf(inputs: List<ItemPos>, outputFile: Path, fontDirectory: Path, settings: Settings){
         val os = outputFile.toFile().outputStream()
         os.use {
             val renderer = ITextRenderer()
 
             //----------- LOAD Fonts --------------
-            println("Loading Fonts from \"${Paths.get("font/").toFile().absolutePath}\": ")
-            Paths.get("font/").toFile().traverseFiles().filter {
+            println("Loading Fonts from \"${fontDirectory.toFile().absolutePath}\": ")
+            fontDirectory.toFile().traverseFiles().filter {
                 arrayOf("otf", "ttf", "ttc").contains(it.extension)
             }.forEach{
                 renderer.fontResolver.addFont(it.absolutePath, it.nameWithoutExtension, BaseFont.CP1252, true, null)
@@ -161,24 +186,29 @@ class PdfCreator {
 
 
             var prevPageCount = 0
+            var firstPage = true
 
             println("Writing Items:")
-            for (i in 0 until inputs.size) {
-                println(" - ${(100*i/inputs.size).toString().padStart(3)}% ${inputs[i].first.name}")
+            inputs.forEachIndexed { index, itemPos ->
+                println(" - ${(100*index/inputs.size).toString().padStart(3)}% ${itemPos.name}")
+                for(q in 0 until itemPos.amount){
+                    val html = newPageHtml(itemPos, settings)
+                    renderer.setDocumentFromString(html)
+                    renderer.layout()
+                    if(firstPage) {
+                        firstPage = false
+                        renderer.createPDF(os, false)
+                    }else
+                        renderer.writeNextDocument()
 
-                //------- Write PFD -----
-                renderer.setDocumentFromString(inputs[i].second)
-                renderer.layout()
-                if(i == 0)
-                    renderer.createPDF(os, false)
-                else
-                    renderer.writeNextDocument()
+                    var currPageCount = renderer.rootBox.layer.pages.size
 
-                //--------- Check -------------
-                val currPageCount = renderer.rootBox.layer.pages.size
-                if(currPageCount-prevPageCount > 1)
-                    throw Exception("Item is too long: ${inputs[i].first}")
-                prevPageCount = currPageCount
+                    if(currPageCount-prevPageCount > 1) {
+                        throw Exception("Item is too long: ${itemPos}")
+                    }
+
+                    prevPageCount = currPageCount
+                }
             }
 
             renderer.finishPDF()
