@@ -39,7 +39,7 @@ class FileStackEntry(val file: File): Iterator<File>{
     var index = 0
 
     override fun hasNext(): Boolean =
-        index < file.listFiles().size
+        file.listFiles() != null && index < file.listFiles().size
 
     override fun next(): File =
         file.listFiles()[index++]

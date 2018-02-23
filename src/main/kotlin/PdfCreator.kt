@@ -26,12 +26,41 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 import java.util.stream.Collectors
+import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 
 
-data class ItemPos(val amount: Int, val name: String, val props: List<Pair<String, String>>, val description: String)
-data class Settings(val titleFont: String, val titleSize: Int, val propertyFont: String, val propertySize: Int, val propertySpacing: Int,
-                    val descriptionFont: String, val descriptionSize: Int)
+data class ItemPos(val amount: Int, val name: String, val props: List<Pair<String, String>>, val description: String, val settings: Settings)
+//data class Settings(val titleFont: String, val titleSize: Int, val propertyFont: String, val propertySize: Int, val propertySpacing: Int,
+//                    val descriptionFont: String, val descriptionSize: Int)
+class Settings{
+    val settings: MutableMap<String, String>
+    val defaults: MutableMap<String, String>
+
+    constructor(defaultSettings: Map<String, String>){
+        this.defaults = HashMap(defaultSettings)
+        this.settings = HashMap()
+    }
+
+    constructor(vararg defaultValues: Pair<String, String>) {
+        this.settings = HashMap()
+        this.defaults = defaultValues.toMap().toMutableMap()
+    }
+
+    constructor(defaultSettings: Settings, values: Map<String, String>){
+        this.defaults = HashMap(defaultSettings.defaults)
+        this.settings = HashMap(values)
+    }
+
+    operator fun get(key: String): String{
+        return getOrNull(key) ?: defaults[key] ?: throw IndexOutOfBoundsException("Key \"$key\" wasn't found and has no default value in settings '$this'.")
+    }
+
+    fun getOrNull(key: String): String?{
+        return settings[key]
+    }
+}
+
 data class PropertyTemplate(val name: String, val needed: Boolean, val default: String?)
 data class ItemTemplate(val name: String, val props: Map<String, PropertyTemplate>)
 
@@ -55,9 +84,14 @@ fun <T> MutableList<T>.removeLast() {
 class PdfCreator {
 
     fun run(inFileName: String, outFileName: String){
-        val settings = Settings("Metamorphous-Regular", 14,
-                "BadScript-Regular", 11, 9,
-                "ArimaMadurai-Regular", 9
+        val settings = Settings(
+                "titleFont" to "Metamorphous-Regular",
+                "titleSize" to "14",
+                "propertyFont" to "BadScript-Regular",
+                "propertySize" to "11",
+                "propertySpacing" to "9",
+                "descriptionFont" to "ArimaMadurai-Regular",
+                "descriptionSize" to "9"
         )
         val itemPath = Paths.get("items")
         val templatePath = Paths.get("templates")
@@ -68,8 +102,8 @@ class PdfCreator {
 
         checkItemFileDuplicates(itemPath)
         val templates = getItemTemplates(templatePath)
-        val inputs = getItemPositions(itemListFile, itemPath, templates)
-        createPdf(inputs, Paths.get(outFileName), fontPath, settings)
+        val inputs = getItemPositions(itemListFile, itemPath, templates, settings)
+        createPdf(inputs, Paths.get(outFileName), fontPath)
         println("Transformed $inFileName into $outFileName")
     }
 
@@ -105,7 +139,7 @@ class PdfCreator {
     /**
      * Loads the Item-Positions from the File
      */
-    private fun getItemPositions(itemListFile: Path, itemDirectory: Path, templates: Map<String, ItemTemplate>): List<ItemPos>{
+    private fun getItemPositions(itemListFile: Path, itemDirectory: Path, templates: Map<String, ItemTemplate>, defaultSettings: Settings): List<ItemPos>{
         return Files.lines(itemListFile).map {
             // val fields = it.split("x")
             val amt = it.substringBefore("x").toInt()
@@ -154,10 +188,16 @@ class PdfCreator {
                 }
             }
 
+            val isSettingOverride = { elem: Pair<String, String> -> elem.first.startsWith("[") && elem.first.endsWith("]") }
+
+            val settingOverride = props.filter(isSettingOverride).map {
+                it.first.substring(1, it.first.length-1) to it.second
+            }.toMap()
+
             props.sortBy { it.first }
             while (lines.hasNext())
                 description += "<br/>" + lines.next()
-            ItemPos(amt, name, props, description)
+            ItemPos(amt, name, props.filterNot(isSettingOverride), description, Settings(defaultSettings, settingOverride))
         }.collect(Collectors.toList())
     }
 
@@ -170,7 +210,7 @@ class PdfCreator {
     */
 
     // --------------- PDF STUFF -------------
-    private fun createPdf(inputs: List<ItemPos>, outputFile: Path, fontDirectory: Path, settings: Settings){
+    private fun createPdf(inputs: List<ItemPos>, outputFile: Path, fontDirectory: Path){
         val os = outputFile.toFile().outputStream()
         os.use {
             val renderer = ITextRenderer()
@@ -192,7 +232,7 @@ class PdfCreator {
             inputs.forEachIndexed { index, itemPos ->
                 println(" - ${(100*index/inputs.size).toString().padStart(3)}% ${itemPos.name}")
                 for(q in 0 until itemPos.amount){
-                    val html = newPageHtml(itemPos, settings)
+                    val html = newPageHtml(itemPos)
                     renderer.setDocumentFromString(html)
                     renderer.layout()
                     if(firstPage) {
@@ -227,8 +267,9 @@ class PdfCreator {
         return if(!debug) "" else "border: 1px solid rgb($r,$g,$b)"
     }
 
-    private fun newPageHtml(item: ItemPos, settings: Settings): String {
+    private fun newPageHtml(item: ItemPos): String {
         val bld = StringBuilder()
+        val settings = item.settings
         bld.append("""
         <html>
             <head>
@@ -240,8 +281,8 @@ class PdfCreator {
                     h1{
                         padding: 0px;
                         margin: 0px;
-                        font-family: ${settings.titleFont};
-                        font-size: ${settings.titleSize}pt;
+                        font-family: ${settings["titleFont"]};
+                        font-size: ${settings["titleSize"]}pt;
                         text-align: center;
                     }
                     div.prop-holder{
@@ -258,13 +299,13 @@ class PdfCreator {
                         margin: 0px;
                     }
                     div.propitem{
-                        line-height: ${settings.propertySpacing}pt;
+                        line-height: ${settings["propertySpacing"]}pt;
                         width: 50%;
                         display: table-cell;
                     }
                     div.propval{
-                        font-family: ${settings.propertyFont};
-                        font-size: ${settings.propertySize}pt;
+                        font-family: ${settings["propertyFont"]};
+                        font-size: ${settings["propertySize"]}pt;
                         vertical-align: bottom;
                         display: inline;
                     }
@@ -277,8 +318,8 @@ class PdfCreator {
                         text-align: left;
                     }
                     p.description{
-                        font-family: ${settings.descriptionFont};
-                        font-size: ${settings.descriptionSize}pt;
+                        font-family: ${settings["descriptionFont"]};
+                        font-size: ${settings["descriptionSize"]}pt;
                         padding-top: 10px;
                         margin: 0px;
                     }
