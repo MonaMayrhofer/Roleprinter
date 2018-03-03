@@ -165,7 +165,7 @@ class PdfCreator {
             var description = ""
             while(lines.hasNext()){
                 val currLine = lines.next()
-                if(!currLine.contains(":")){
+                if(!currLine.contains(":") || currLine.indexOf(":") > 10){
                     description += currLine
                     break
                 }
