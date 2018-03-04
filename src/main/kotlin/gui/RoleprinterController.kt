@@ -1,6 +1,3 @@
-import gui.RoleprinterApp
-import gui.main
-
 /*
  * Roleprinter - Print itemcards for your Pathfinder campaign.
  *     Copyright (C) 2018 Erik Mayrhofer
@@ -19,13 +16,17 @@ import gui.main
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+package gui
 
+import javafx.collections.FXCollections
+import javafx.collections.ObservableList
+import tornadofx.Controller
 
-fun main(args: Array<String>) {
-    if(args.isNotEmpty() && args[0] == "gui"){
-        val newArgs = if(args.size > 1) args.slice(1 until args.lastIndex) else listOf()
-        main(newArgs.toTypedArray())
-    }else
-        //PdfCreator().run(args.getOrElse(0, {"itemlist.txt"}), args.getOrElse(1, {"out.pdf"}))
-        PdfCreator2()
+class RoleprinterController : Controller() {
+    val values = FXCollections.observableArrayList("Abc", "Def", "Efg")
+    fun crunchText(text: String): String {
+        Thread.sleep(2000)
+        return "Abc"+text
+    }
+
 }

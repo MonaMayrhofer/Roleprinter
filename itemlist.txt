@@ -1,3 +1,6 @@
-3x Heiltrank
-1x Arkaner Siegelring
-1x Diamond
+--Kommentar
+--Achtung Leerzeile
+
+x
+2x 
+3x 

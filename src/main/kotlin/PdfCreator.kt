@@ -142,7 +142,15 @@ class PdfCreator {
     private fun getItemPositions(itemListFile: Path, itemDirectory: Path, templates: Map<String, ItemTemplate>, defaultSettings: Settings): List<ItemPos>{
         return Files.lines(itemListFile).map {
             // val fields = it.split("x")
-            val amt = it.substringBefore("x").toInt()
+            if (it.startsWith("--"))
+                return@map null
+
+            if(it.trim().isEmpty())
+                return@map null
+
+            val amt = if(it.contains("x"))
+                it.substringBefore("x").toIntOrNull() ?: 1
+            else 1
             val itemName = it.substringAfter("x").trim()
             println("Parsing: $it -> $itemName")
             val itemFileName = "$itemName.item"
@@ -165,7 +173,7 @@ class PdfCreator {
             var description = ""
             while(lines.hasNext()){
                 val currLine = lines.next()
-                if(!currLine.contains(":") || currLine.indexOf(":") > 10){
+                if(!currLine.contains(":") || (currLine.indexOf(":") > 10 && !currLine.startsWith("["))){
                     description += currLine
                     break
                 }
@@ -188,17 +196,28 @@ class PdfCreator {
                 }
             }
 
+
             val isSettingOverride = { elem: Pair<String, String> -> elem.first.startsWith("[") && elem.first.endsWith("]") }
+
+
+            props.forEach {
+                println(it.first)
+                println(isSettingOverride(it))
+            }
 
             val settingOverride = props.filter(isSettingOverride).map {
                 it.first.substring(1, it.first.length-1) to it.second
             }.toMap()
 
+            settingOverride.forEach{
+                print("${it.key} + ${it.value}")
+            }
+
             props.sortBy { it.first }
             while (lines.hasNext())
                 description += "<br/>" + lines.next()
             ItemPos(amt, name, props.filterNot(isSettingOverride), description, Settings(defaultSettings, settingOverride))
-        }.collect(Collectors.toList())
+        }.collect(Collectors.toList()).filterNotNull()
     }
 
     /*

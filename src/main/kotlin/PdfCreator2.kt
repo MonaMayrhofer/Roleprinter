@@ -1,5 +1,4 @@
-import gui.RoleprinterApp
-import gui.main
+import java.nio.file.Paths
 
 /*
  * Roleprinter - Print itemcards for your Pathfinder campaign.
@@ -19,13 +18,10 @@ import gui.main
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+class PdfCreator2 {
+    val itemsJob: ItemsJob
 
-
-fun main(args: Array<String>) {
-    if(args.isNotEmpty() && args[0] == "gui"){
-        val newArgs = if(args.size > 1) args.slice(1 until args.lastIndex) else listOf()
-        main(newArgs.toTypedArray())
-    }else
-        //PdfCreator().run(args.getOrElse(0, {"itemlist.txt"}), args.getOrElse(1, {"out.pdf"}))
-        PdfCreator2()
+    init {
+        itemsJob = ItemsJob(Paths.get("itemlist.txt"))
+    }
 }
