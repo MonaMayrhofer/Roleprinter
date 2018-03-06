@@ -30,7 +30,7 @@ class ItemsJob(itemsJobFile: Path) {
             if(line.trim().isEmpty())
                 return@map null
 
-            if(line.contains("^[0-9]+x ".toRegex())){
+            if(line.contains("^[0-9]+x .+".toRegex())){
                 val nbr = line.substringBefore("x ").toInt()
                 val name = line.substringAfter("x ").trim()
                 if(name.isEmpty())
@@ -38,10 +38,8 @@ class ItemsJob(itemsJobFile: Path) {
                 else
                     ItemJob(name, nbr)
             }else{
-                ItemJob(line, 1)
+                ItemJob(line.trim(), 1)
             }
         }.filterNotNull().toList() }
-
-        itemJobs.forEach { println(it) }
     }
 }

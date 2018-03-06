@@ -1,5 +1,6 @@
 import gui.RoleprinterApp
 import gui.main
+import java.nio.file.Paths
 
 /*
  * Roleprinter - Print itemcards for your Pathfinder campaign.
@@ -27,5 +28,5 @@ fun main(args: Array<String>) {
         main(newArgs.toTypedArray())
     }else
         //PdfCreator().run(args.getOrElse(0, {"itemlist.txt"}), args.getOrElse(1, {"out.pdf"}))
-        PdfCreator2()
+        PdfCreator2(Paths.get("itemlist.txt"))
 }
