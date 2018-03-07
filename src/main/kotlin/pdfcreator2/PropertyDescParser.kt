@@ -32,15 +32,14 @@ object PropertyDescParser {
                 }
             }.asSequence()
         }.partition { it.second != null }
-
-        val parts = intermediate.first.mapNotNull { if(it.second==null) null else it.first to it.second!! }.toMap()
-        val description = intermediate.second.joinToString(separator = "\n") { it.first.trim() }
-
-        val descriptionParts = description.split("\\n(?= *--- *\\w+ *--- *\\n)".toRegex())
-
-        val descriptionMap = descriptionParts.map {
-            val lines = it.split("\n")
-            lines[0].replace("-","").trim() to lines.subList(1, lines.size).joinToString(" ")
+        val parts = intermediate.first.
+                mapNotNull { if(it.second==null) null else it.first to it.second!! }.toMap()
+        val descriptionMap = intermediate.second.joinToString(separator = "\n") { it.first.trim() }
+                .split("\\n(?= *--- *\\w+ *--- *\\n)".toRegex())
+                .map {
+            val descLines = it.split("\n")
+                    descLines[0].replace("-","").trim() to descLines.subList(1, descLines.size)
+                            .joinToString(" ")
         }.toMap()
 
         println("PropertyDescParser parsed file in: ${System.currentTimeMillis()-startMillis}ms")
