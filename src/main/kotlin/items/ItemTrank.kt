@@ -16,21 +16,14 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-object ItemManager {
+package items
 
-    val hashMap: MutableMap<String, Item> = HashMap()
+import pdfcreator2.*
 
-    fun getItem(name: String): Item{
-        return hashMap[name] ?: loadAddItem(name)
-    }
-
-    fun loadAddItem(name: String): Item{
-        val item = loadItem(name)
-        hashMap[name] = item
-        return item
-    }
-
-    fun loadItem(name: String): Item{
-        return Item(name)
+data class ItemTrank(val spell: Spell): Entity() {
+    companion object : ItemFactory<ItemTrank>() {
+        override fun load(itemDescriptor: ItemDescriptor): ItemTrank {
+            return ItemTrank(SpellManager[itemDescriptor.name])
+        }
     }
 }
