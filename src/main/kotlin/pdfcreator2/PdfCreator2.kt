@@ -18,8 +18,49 @@
 
 package pdfcreator2
 
+import com.itextpdf.io.font.FontConstants
+import com.itextpdf.io.font.constants.StandardFonts
+import com.itextpdf.kernel.font.PdfFontFactory
+import com.itextpdf.kernel.geom.PageSize
+import com.itextpdf.kernel.pdf.PdfDocument
+import com.itextpdf.kernel.pdf.PdfPage
+import com.itextpdf.kernel.pdf.PdfWriter
+import com.itextpdf.kernel.pdf.canvas.PdfCanvas
+import com.itextpdf.kernel.utils.PdfMerger
+import com.itextpdf.layout.element.Table
+import com.itextpdf.text.Document
+import com.itextpdf.text.Paragraph
+import com.itextpdf.text.Rectangle
 import items.ItemTrank
 import java.nio.file.Path
+import java.nio.file.Paths
+import javax.swing.text.StyleConstants
+
+fun cmToPt(cm: Float): Float {
+    return 0.393701f*cm*72f
+}
+
+fun document(content: PdfDocument.()->Unit){
+    val doc = PdfDocument(PdfWriter("out.pdf"))
+    doc.content()
+    doc.close()
+}
+
+fun PdfDocument.page(content: PdfCanvas.()->Unit){
+
+    val w = pdfcreator2.cmToPt(6.35f)
+    val h = pdfcreator2.cmToPt(8.89f)
+    val margin = pdfcreator2.cmToPt(0.3f)
+
+
+
+    val page = addNewPage(PageSize(w, h))
+
+    val canvas = PdfCanvas(page)
+
+    canvas.content()
+
+}
 
 class PdfCreator2(itemListFileName: Path) {
 
@@ -36,6 +77,18 @@ class PdfCreator2(itemListFileName: Path) {
                 Card(ItemManager[ItemDescriptor(fields.getOrNull(1)?:fields[0],if(fields.size > 1) fields[0] else "" )])
             }.asIterable()
         }
-        cards.map
+
+
+        val doc = Document()
+
+
+        val str = "Hallo, 1 bims!".repeat(30)
+
+        document {
+            cards.forEach {
+                page {
+                }
+            }
+        }
     }
 }
