@@ -1,8 +1,4 @@
-import gui.main
-import pdfcreator2.PdfCreator2
-import java.nio.file.Paths
-
-/*
+package pdfcreator2/*
  * Roleprinter - Print itemcards for your Pathfinder campaign.
  *     Copyright (C) 2018 Erik Mayrhofer
  *
@@ -20,13 +16,6 @@ import java.nio.file.Paths
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+class ItemCreatorWizard{
 
-
-fun main(args: Array<String>) {
-    if(args.isNotEmpty() && args[0] == "gui"){
-        val newArgs = if(args.size > 1) args.slice(1 until args.lastIndex) else listOf()
-        main(newArgs.toTypedArray())
-    }else
-        //PdfCreator().run(args.getOrElse(0, {"itemlist.txt"}), args.getOrElse(1, {"out.pdf"}))
-        PdfCreator2(Paths.get("itemlist.txt"))
 }

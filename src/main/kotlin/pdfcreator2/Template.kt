@@ -1,7 +1,4 @@
-import java.nio.file.Path
-import java.nio.file.Paths
-
-/*
+package pdfcreator2/*
  * Roleprinter - Print itemcards for your Pathfinder campaign.
  *     Copyright (C) 2018 Erik Mayrhofer
  *
@@ -19,18 +16,5 @@ import java.nio.file.Paths
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-class PdfCreator2(itemListFileName: Path) {
-
-    val itemsJob: ItemsJob = ItemsJob(itemListFileName)
-
-    val cards: List<Card>
-
-    init {
-        cards = itemsJob.itemJobs.flatMap {job ->
-            Array(1){
-                Card(ItemManager.getItem(job.itemName))
-            }.asIterable()
-        }
-        cards.forEach { println(it) }
-    }
+class Template {
 }

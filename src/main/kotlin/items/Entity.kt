@@ -16,10 +16,6 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-object PropertyManager {
-    val defaultMap: MutableMap<String, String> = HashMap()
+package items
 
-    fun getPropertyMap(): MutableMap<String, String?>{
-        return HashMap<String, String?>().withDefault { defaultMap[it] }
-    }
-}
+abstract class Entity

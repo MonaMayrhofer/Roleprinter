@@ -1,6 +1,4 @@
 --Kommentar
 --Achtung Leerzeile
 
-x Hallo
-2x Hallo2
-3x Hallo3
+Trank/Leichte Wunden Heilen

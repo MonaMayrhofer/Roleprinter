@@ -1,5 +1,3 @@
-import java.nio.file.Path
-
 /*
  * Roleprinter - Print itemcards for your Pathfinder campaign.
  *     Copyright (C) 2018 Erik Mayrhofer
@@ -18,28 +16,20 @@ import java.nio.file.Path
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-class ItemsJob(itemsJobFile: Path) {
+package pdfcreator2
 
-    val itemJobs: List<ItemJob>
 
-    init {
-        itemJobs = itemsJobFile.toFile().inputStream().bufferedReader().useLines { it.map { line ->
-            if(line.startsWith("--"))
-                return@map null
+data class Spell(
+    val school: String,
+    val domain: String,
+    val level: String,
+    val time: String,
+    val components: String,
+    val range: String,
+    val target: String,
+    val duration: String,
+    val savingThrow: String,
+    val resistance: String,
+    val description: Map<String, String>
+)
 
-            if(line.trim().isEmpty())
-                return@map null
-
-            if(line.contains("^[0-9]+x .+".toRegex())){
-                val nbr = line.substringBefore("x ").toInt()
-                val name = line.substringAfter("x ").trim()
-                if(name.isEmpty())
-                    null
-                else
-                    ItemJob(name, nbr)
-            }else{
-                ItemJob(line.trim(), 1)
-            }
-        }.filterNotNull().toList() }
-    }
-}

@@ -16,4 +16,26 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-data class ItemJob(val itemName: String, val itemAmount: Int)
+package util
+
+fun <T> Iterator<T>.next(predicate: (T)->Boolean): T? {
+    while(hasNext()) {
+        val curr = next()
+        if(predicate(curr))
+            return curr
+    }
+    return null
+}
+
+fun Iterator<String>.nextTrimmed(): String{
+    return next().trim()
+}
+
+fun Iterator<String>.nextNotEmpty(): String{
+    do{
+        val line = nextTrimmed()
+        if(!line.isEmpty()){
+            return line
+        }
+    }while(true)
+}

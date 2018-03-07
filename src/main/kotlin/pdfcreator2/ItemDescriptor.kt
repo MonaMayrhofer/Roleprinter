@@ -1,4 +1,4 @@
-/*
+package pdfcreator2/*
  * Roleprinter - Print itemcards for your Pathfinder campaign.
  *     Copyright (C) 2018 Erik Mayrhofer
  *
@@ -16,6 +16,4 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-data class Item(val name: String) {
-    val properties = PropertyManager.getPropertyMap()
-}
+data class ItemDescriptor(val name: String, val category: String)

@@ -16,6 +16,10 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-class ItemCreatorWizard{
+package pdfcreator2
 
+import items.Entity
+
+abstract class ItemFactory<out T: Entity> {
+    abstract fun load(itemDescriptor: ItemDescriptor): T
 }

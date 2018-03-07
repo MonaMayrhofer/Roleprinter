@@ -20,6 +20,7 @@
 
 import com.itextpdf.text.pdf.BaseFont
 import org.xhtmlrenderer.pdf.ITextRenderer
+import util.nextNotEmpty
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -64,18 +65,7 @@ class Settings{
 data class PropertyTemplate(val name: String, val needed: Boolean, val default: String?)
 data class ItemTemplate(val name: String, val props: Map<String, PropertyTemplate>)
 
-fun Iterator<String>.nextTrimmed(): String{
-    return next().trim()
-}
 
-fun Iterator<String>.nextNotEmpty(): String{
-    do{
-        val line = nextTrimmed()
-        if(!line.isEmpty()){
-            return line
-        }
-    }while(true)
-}
 
 fun <T> MutableList<T>.removeLast() {
     this.removeAt(this.lastIndex)
@@ -111,7 +101,7 @@ class PdfCreator {
         val paths = HashSet<String>()
         itemDirectory.toFile().traverseFiles().forEach {
             if(paths.contains(it.nameWithoutExtension)){
-                throw IOException("Double Item-Identificator: ${it.nameWithoutExtension}")
+                throw IOException("Double items.Entity-Identificator: ${it.nameWithoutExtension}")
             }
             paths.add(it.nameWithoutExtension)
         }
@@ -137,7 +127,7 @@ class PdfCreator {
     }
 
     /**
-     * Loads the Item-Positions from the File
+     * Loads the items.Entity-Positions from the File
      */
     private fun getItemPositions(itemListFile: Path, itemDirectory: Path, templates: Map<String, ItemTemplate>, defaultSettings: Settings): List<ItemPos>{
         return Files.lines(itemListFile).map {
@@ -154,14 +144,14 @@ class PdfCreator {
             val itemName = it.substringAfter("x").trim()
             println("Parsing: $it -> $itemName")
             val itemFileName = "$itemName.item"
-            val itemFile = itemDirectory.toFile().traverseFiles().firstOrNull { it.name == itemFileName } ?: throw IOException("Couldn't find Item-File for \"$itemName\" -> $itemFileName")
+            val itemFile = itemDirectory.toFile().traverseFiles().firstOrNull { it.name == itemFileName } ?: throw IOException("Couldn't find items.Entity-File for \"$itemName\" -> $itemFileName")
             val lines = Files.readAllLines(itemFile.toPath()).iterator()
             var name = lines.nextNotEmpty()
             var template: ItemTemplate? = null
             if(name.startsWith("<") && name.endsWith(">")){
                 val templatename = name.trim('<','>')
                 if(!templates.containsKey(templatename)){
-                    throw IllegalStateException("Template couldn't be found: $templatename")
+                    throw IllegalStateException("pdfcreator2.Template couldn't be found: $templatename")
                 }
                 template = templates[templatename]
                 name=lines.nextNotEmpty()
@@ -263,7 +253,7 @@ class PdfCreator {
                     var currPageCount = renderer.rootBox.layer.pages.size
 
                     if(currPageCount-prevPageCount > 1) {
-                        throw Exception("Item is too long: ${itemPos}")
+                        throw Exception("items.Entity is too long: ${itemPos}")
                     }
 
                     prevPageCount = currPageCount
