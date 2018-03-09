@@ -2,3 +2,5 @@
 --Achtung Leerzeile
 
 Trank (Grad 1., ZS 1) Leichte Wunden heilen 50 GM
+Trank (Grad 1., ZS 1) Schmieren 50 GM
+Trank (Grad 1., ZS 1) Shillelagh 50 GM

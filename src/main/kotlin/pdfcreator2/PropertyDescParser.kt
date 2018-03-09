@@ -26,8 +26,6 @@ object PropertyDescParser {
         val headerRegex = " *--- *\\w+(:? ?\\[.*\\])? *--- *".toRegex()
         val headerNameSplitRegex = "\\]?( *--- *)|:? *\\[".toRegex()
 
-        println("\n---Trank---\n".contains(headerSplitRegex))
-
         val intermediate = lines.flatMap { line ->
             line.split(";").filter { !it.trim().isEmpty() }.map { field ->
                 val arr = field.split(":", limit = 2)
@@ -43,24 +41,20 @@ object PropertyDescParser {
         val descriptionMap = intermediate.second.joinToString(separator = "\n") { it.first.trim() }
                 .split(headerSplitRegex)
                 .map {
-                    println("ONEMAP!!!")
                     val descLines = it.split("\n")
                     val desc = descLines.subList(1, descLines.size).joinToString(" ")
                     val firstLine = descLines[0]
-                    println("FirstLine: $firstLine")
                     if(!firstLine.matches(headerRegex)) {
-                        println("Generic Description")
                         "Spell" to SpellDescription(desc, name)
                     }else {
                         val headerFields = firstLine.split(headerNameSplitRegex).filterNot { it.isEmpty() }
                         val descCategory = headerFields[0]
                         val descName = headerFields.getOrNull(1).takeUnless { it?.trim()?.isEmpty() ?: false }
-                        println("Got: $descName of $descCategory")
                         descCategory to SpellDescription(desc, descName)
                     }
         }.toMap()
 
-        println("PropertyDescParser parsed file in: ${System.currentTimeMillis()-startMillis}ms")
+        println("PropertyDescParser parsed input '$name' in: ${System.currentTimeMillis()-startMillis}ms")
         return Pair(parts, descriptionMap)
     }
 }

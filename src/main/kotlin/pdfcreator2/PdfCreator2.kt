@@ -35,7 +35,6 @@ class PdfCreator2(itemListFileName: Path) {
         cards = itemsJob.itemJobs.flatMap {job ->
             //Trank (Grad 1., ZS 1) Leichte Wunden heilen 50 GM
             val fields = job.itemName.split(" \\(|\\) ".toRegex(), limit = 3)
-            fields.forEach { println(it) }
             val itemDescriptor = if(fields[0] == "Trank"){
                 val properties = fields[1].replace(".","").split(", ").mapNotNull {
                     val propertyFields = it.split(" ")
@@ -44,7 +43,6 @@ class PdfCreator2(itemListFileName: Path) {
                     else
                     propertyFields[0] to propertyFields[1].toInt()
                 }.toMap()
-                println(properties)
                 ItemTrank.ItemTrankDescriptor(job.itemName, "Trank", properties["ZS"]!!, properties["Grad"]!!)
             }else{
                 ItemDescriptor(job.itemName, "")
@@ -63,7 +61,7 @@ class PdfCreator2(itemListFileName: Path) {
                 page({
                     it.genPdf(this)
                 }, {
-                    println("$it takes to much space!")
+                    throw Exception("$it takes to much space!")
                 })
             }
         }

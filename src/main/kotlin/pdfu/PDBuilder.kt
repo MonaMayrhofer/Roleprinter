@@ -22,8 +22,13 @@ import com.itextpdf.kernel.geom.PageSize
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.layout.Document
+import com.itextpdf.layout.borders.Border
 import com.itextpdf.layout.element.AreaBreak
+import com.itextpdf.layout.element.Cell
+import com.itextpdf.layout.element.Paragraph
+import com.itextpdf.layout.element.Table
 import com.itextpdf.layout.property.AreaBreakType
+import com.itextpdf.layout.property.UnitValue
 
 
 fun cmToPt(cm: Float): Float {
@@ -59,3 +64,23 @@ fun Pair<Document, PdfDocument>.page(content: Document.()->Unit, error: ()->Unit
     }
 }
 
+fun Document.table(numColumns: Int, border: Border? = Border.NO_BORDER, content: Table.()->Unit){
+    val table = Table(Array(numColumns){UnitValue.createPercentValue(100f/numColumns)})
+    table.setBorder(border)
+    table.content()
+    add(table)
+}
+
+fun Table.cell(content: String, border: Border? = Border.NO_BORDER){
+    val cell = Cell()
+    cell.add(Paragraph(content))
+    cell.setBorder(border)
+    addCell(cell)
+}
+
+fun Table.cell(border: Border? = Border.NO_BORDER, content: Cell.()->Unit){
+    val cell = Cell()
+    cell.content()
+    cell.setBorder(border)
+    addCell(cell)
+}
