@@ -18,8 +18,6 @@
 
 package pdfcreator2
 
-import items.Entity
-
 /*
  * Roleprinter - Print itemcards for your Pathfinder campaign.
  *     Copyright (C) 2018 Erik Mayrhofer

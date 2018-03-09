@@ -30,10 +30,11 @@ class PdfCreator2(itemListFileName: Path) {
     val cards: List<Card>
 
     init {
+        val startMillis = System.currentTimeMillis()
+
         ItemManager.registerLoader("Trank", ItemTrank)
 
         cards = itemsJob.itemJobs.flatMap {job ->
-            //Trank (Grad 1., ZS 1) Leichte Wunden heilen 50 GM
             val fields = job.itemName.split(" \\(|\\) ".toRegex(), limit = 3)
             val itemDescriptor = if(fields[0] == "Trank"){
                 val properties = fields[1].replace(".","").split(", ").mapNotNull {
@@ -55,15 +56,16 @@ class PdfCreator2(itemListFileName: Path) {
             }.asIterable()
         }
 
-
         document {
             cards.forEach {
                 page({
                     it.genPdf(this)
                 }, {
-                    throw Exception("$it takes to much space!")
+                    throw Exception("'${it.item.itemName}' in '${it.item.filename}' takes to much space!")
                 })
             }
         }
+
+        println("PdfCreator finished in ${System.currentTimeMillis()-startMillis}ms.")
     }
 }

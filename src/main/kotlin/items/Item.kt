@@ -21,7 +21,9 @@ package items
 import com.itextpdf.layout.Document
 import com.itextpdf.layout.element.Paragraph
 
-abstract class Entity(val itemName: String) {
+abstract class Item(val itemName: String) {
+    abstract val filename: String
+
     fun genPdf(document: Document){
         document.add(Paragraph(itemName))
         genPdfDesc(document)

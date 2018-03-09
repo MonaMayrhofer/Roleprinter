@@ -19,9 +19,9 @@
 package pdfcreator2
 
 import com.itextpdf.layout.Document
-import items.Entity
+import items.Item
 
-data class Card(val item: Entity) {
+data class Card(val item: Item) {
     fun genPdf(document: Document) {
         item.genPdf(document)
     }

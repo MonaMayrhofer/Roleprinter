@@ -101,7 +101,7 @@ class PdfCreator {
         val paths = HashSet<String>()
         itemDirectory.toFile().traverseFiles().forEach {
             if(paths.contains(it.nameWithoutExtension)){
-                throw IOException("Double items.Entity-Identificator: ${it.nameWithoutExtension}")
+                throw IOException("Double items.Item-Identificator: ${it.nameWithoutExtension}")
             }
             paths.add(it.nameWithoutExtension)
         }
@@ -127,7 +127,7 @@ class PdfCreator {
     }
 
     /**
-     * Loads the items.Entity-Positions from the File
+     * Loads the items.Item-Positions from the File
      */
     private fun getItemPositions(itemListFile: Path, itemDirectory: Path, templates: Map<String, ItemTemplate>, defaultSettings: Settings): List<ItemPos>{
         return Files.lines(itemListFile).map {
@@ -144,7 +144,7 @@ class PdfCreator {
             val itemName = it.substringAfter("x").trim()
             println("Parsing: $it -> $itemName")
             val itemFileName = "$itemName.item"
-            val itemFile = itemDirectory.toFile().traverseFiles().firstOrNull { it.name == itemFileName } ?: throw IOException("Couldn't find items.Entity-File for \"$itemName\" -> $itemFileName")
+            val itemFile = itemDirectory.toFile().traverseFiles().firstOrNull { it.name == itemFileName } ?: throw IOException("Couldn't find items.Item-File for \"$itemName\" -> $itemFileName")
             val lines = Files.readAllLines(itemFile.toPath()).iterator()
             var name = lines.nextNotEmpty()
             var template: ItemTemplate? = null
@@ -253,7 +253,7 @@ class PdfCreator {
                     var currPageCount = renderer.rootBox.layer.pages.size
 
                     if(currPageCount-prevPageCount > 1) {
-                        throw Exception("items.Entity is too long: ${itemPos}")
+                        throw Exception("items.Item is too long: ${itemPos}")
                     }
 
                     prevPageCount = currPageCount

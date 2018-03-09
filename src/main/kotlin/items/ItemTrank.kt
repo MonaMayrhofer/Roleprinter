@@ -18,23 +18,16 @@
 
 package items
 
-import com.itextpdf.kernel.colors.Color
-import com.itextpdf.kernel.colors.DeviceRgb
 import com.itextpdf.layout.Document
-import com.itextpdf.layout.borders.Border
-import com.itextpdf.layout.borders.DottedBorder
-import com.itextpdf.layout.borders.SolidBorder
-import com.itextpdf.layout.element.Cell
 import com.itextpdf.layout.element.Paragraph
-import com.itextpdf.layout.element.Table
-import com.itextpdf.layout.element.Text
-import com.itextpdf.text.BaseColor
 import pdfcreator2.*
 import pdfu.cell
 import pdfu.table
 
-data class ItemTrank(val spell: Spell, val level: Int, val degree: Int): Entity(
+data class ItemTrank(val spell: Spell, val level: Int, val degree: Int, override val filename: String): Item(
         spell["Trank"].name ?: spell["Spell"].name!!) { //TODO Make better Trank-Names
+
+
     override fun genPdfDesc(document: Document) {
         with(document){
             table(2){
@@ -45,7 +38,7 @@ data class ItemTrank(val spell: Spell, val level: Int, val degree: Int): Entity(
                 cell("Dauer")
                 cell(spell.duration)
             }
-            add(Paragraph(spell["Trank"].text))
+            add(Paragraph(spell["Trank"].text).setFontSize(9f))
         }
     }
 
@@ -53,7 +46,7 @@ data class ItemTrank(val spell: Spell, val level: Int, val degree: Int): Entity(
         override fun load(itemDescriptor: ItemDescriptor): ItemTrank {
             val trankDescrptor = itemDescriptor as ItemTrankDescriptor
             val zaubername = itemDescriptor.name.substringAfterLast(") ").replace(" \\d+ GM".toRegex(), "")
-            return ItemTrank(SpellManager[zaubername], trankDescrptor.level, trankDescrptor.degree)
+            return ItemTrank(SpellManager[zaubername], trankDescrptor.level, trankDescrptor.degree, "Zauber: $zaubername")
         }
     }
 

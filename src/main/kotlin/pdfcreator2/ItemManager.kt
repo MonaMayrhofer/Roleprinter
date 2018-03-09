@@ -18,7 +18,7 @@
 
 package pdfcreator2
 
-import items.Entity
+import items.Item
 import java.io.File
 import java.io.IOException
 import java.nio.file.Paths
@@ -41,15 +41,15 @@ import java.nio.file.Paths
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-object ItemManager : LazyManager<ItemDescriptor, Entity>() {
+object ItemManager : LazyManager<ItemDescriptor, Item>() {
 
-    private val loaders: HashMap<String, ItemFactory<Entity>> = HashMap()
+    private val loaders: HashMap<String, ItemFactory<Item>> = HashMap()
 
-    fun registerLoader(category: String, loader: ItemFactory<Entity>){
+    fun registerLoader(category: String, loader: ItemFactory<Item>){
         loaders[category] = loader
     }
 
-    override fun load(name: ItemDescriptor): Entity {
+    override fun load(name: ItemDescriptor): Item {
         if(loaders.containsKey(name.category)) {
             return loaders[name.category]!!.load(name)
         }
@@ -64,7 +64,7 @@ object ItemManager : LazyManager<ItemDescriptor, Entity>() {
         return loadItem(file)
     }
 
-    fun loadItem(file: File): Entity {
+    fun loadItem(file: File): Item {
         TODO()
     }
 }

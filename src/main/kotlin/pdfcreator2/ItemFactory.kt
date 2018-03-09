@@ -18,8 +18,8 @@
 
 package pdfcreator2
 
-import items.Entity
+import items.Item
 
-abstract class ItemFactory<out T: Entity> {
+abstract class ItemFactory<out T: Item> {
     abstract fun load(itemDescriptor: ItemDescriptor): T
 }
