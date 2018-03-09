@@ -17,50 +17,11 @@
  */
 
 package pdfcreator2
-
-import com.itextpdf.io.font.FontConstants
-import com.itextpdf.io.font.constants.StandardFonts
-import com.itextpdf.kernel.font.PdfFontFactory
-import com.itextpdf.kernel.geom.PageSize
-import com.itextpdf.kernel.pdf.PdfDocument
-import com.itextpdf.kernel.pdf.PdfPage
-import com.itextpdf.kernel.pdf.PdfWriter
-import com.itextpdf.kernel.pdf.canvas.PdfCanvas
-import com.itextpdf.kernel.utils.PdfMerger
-import com.itextpdf.layout.element.Table
-import com.itextpdf.text.Document
-import com.itextpdf.text.Paragraph
-import com.itextpdf.text.Rectangle
 import items.ItemTrank
+import pdfu.document
+import pdfu.page
 import java.nio.file.Path
-import java.nio.file.Paths
-import javax.swing.text.StyleConstants
 
-fun cmToPt(cm: Float): Float {
-    return 0.393701f*cm*72f
-}
-
-fun document(content: PdfDocument.()->Unit){
-    val doc = PdfDocument(PdfWriter("out.pdf"))
-    doc.content()
-    doc.close()
-}
-
-fun PdfDocument.page(content: PdfCanvas.()->Unit){
-
-    val w = pdfcreator2.cmToPt(6.35f)
-    val h = pdfcreator2.cmToPt(8.89f)
-    val margin = pdfcreator2.cmToPt(0.3f)
-
-
-
-    val page = addNewPage(PageSize(w, h))
-
-    val canvas = PdfCanvas(page)
-
-    canvas.content()
-
-}
 
 class PdfCreator2(itemListFileName: Path) {
 
@@ -72,22 +33,38 @@ class PdfCreator2(itemListFileName: Path) {
         ItemManager.registerLoader("Trank", ItemTrank)
 
         cards = itemsJob.itemJobs.flatMap {job ->
-            val fields = job.itemName.split("/",limit=2)
-            Array(1){
-                Card(ItemManager[ItemDescriptor(fields.getOrNull(1)?:fields[0],if(fields.size > 1) fields[0] else "" )])
+            //Trank (Grad 1., ZS 1) Leichte Wunden heilen 50 GM
+            val fields = job.itemName.split(" \\(|\\) ".toRegex(), limit = 3)
+            fields.forEach { println(it) }
+            val itemDescriptor = if(fields[0] == "Trank"){
+                val properties = fields[1].replace(".","").split(", ").mapNotNull {
+                    val propertyFields = it.split(" ")
+                    val value = propertyFields[1].toIntOrNull()
+                    if(value == null) null
+                    else
+                    propertyFields[0] to propertyFields[1].toInt()
+                }.toMap()
+                println(properties)
+                ItemTrank.ItemTrankDescriptor(job.itemName, "Trank", properties["ZS"]!!, properties["Grad"]!!)
+            }else{
+                ItemDescriptor(job.itemName, "")
+            }
+
+            val item = ItemManager[itemDescriptor]
+
+            Array(job.itemAmount){
+                Card(item)
             }.asIterable()
         }
 
 
-        val doc = Document()
-
-
-        val str = "Hallo, 1 bims!".repeat(30)
-
         document {
             cards.forEach {
-                page {
-                }
+                page({
+                    it.genPdf(this)
+                }, {
+                    println("$it takes to much space!")
+                })
             }
         }
     }

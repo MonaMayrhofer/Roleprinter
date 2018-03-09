@@ -1,4 +1,4 @@
 --Kommentar
 --Achtung Leerzeile
 
-Trank/Leichte Wunden Heilen
+Trank (Grad 1., ZS 1) Leichte Wunden heilen 50 GM

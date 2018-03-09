@@ -1,7 +1,4 @@
-
-
-
-Schule: Beschwörung (Heilung); Grad: BAR 1, KLE 1, DRU 1, PAL 1, WAL 2
+ Schule: Beschwörung (Heilung); Grad: BAR 1, KLE 1, DRU 1, PAL 1, WAL 2
 Zeitaufwand: 1 Standard-Aktion
 Komponenten: V, G
 Reichweite: Berührung
@@ -9,20 +6,11 @@ Ziel: Berührte Kreatur
 Wirkungsdauer: Augenblicklich
 Rettungswurf: Willen, halbiert (harmlos) (siehe Text); Zauberresistenz: Ja (harmlos) (siehe Text)
 
-  abc
-  def:ghi
-   jkl
+Wenn du einer lebenden Kreatur deine Hände auflegst, kannst du positive Energie in sie leiten, die 1W8 Schadenspunkte + 1 pro Zauberstufe (maximal +5) heilt.
 
---- Trank ---
-Trankbeschreibung
-Trankbeschreibung2
---- Scroll ---
---- Scrolla ---
-Scroll1
+Da untote Kreaturen von negativer Energie angetrieben werden, verursacht der Zauber bei ihnen Schaden, statt sie zu heilen. Eine untote Kreatur kann ihre Zauberresistenz dagegen einsetzen und einen Willenswurf ablegen, um den Schaden zu halbieren.
 
-Scroll 2
+--- Trank [Leichter Heiltrank] ---
+Du bekommst 1W8+ZS Trefferpunkte zurück.
 
-
-
-Lol1
-
+Wenn du untot bist, wirkt dies als Gift mit. WIL(10+ZG) um Schaden zu halbieren, Zauberresistenz wirkt.

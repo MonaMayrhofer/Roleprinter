@@ -25,7 +25,7 @@ object SpellManager : FromFileManager<String, Spell>("zauber") {
         return descriptor.equals(file.nameWithoutExtension, true)
     }
 
-    override fun parse(lines: Sequence<String>): Spell {
+    override fun parse(lines: Sequence<String>, name: String): Spell {
         val expected = listOf(
                 "Schule",
                 "Grad",
@@ -37,9 +37,11 @@ object SpellManager : FromFileManager<String, Spell>("zauber") {
                 "Rettungswurf",
                 "Zauberresistenz")
 
-        val (parts, description) = PropertyDescParser.parsePropertyDesc(lines, expected)
+        val (parts, description) = PropertyDescParser.parsePropertyDesc(lines, expected, name)
 
-        return Spell(parts["Schule"]!!,
+        return Spell(
+                name,
+                parts["Schule"]!!,
                 "TODO",
                 parts["Grad"]!!,
                 parts["Zeitaufwand"]!!,

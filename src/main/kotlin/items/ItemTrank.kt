@@ -18,12 +18,35 @@
 
 package items
 
+import com.itextpdf.layout.Document
+import com.itextpdf.layout.element.Cell
+import com.itextpdf.layout.element.Paragraph
+import com.itextpdf.layout.element.Table
 import pdfcreator2.*
 
-data class ItemTrank(val spell: Spell): Entity() {
-    companion object : ItemFactory<ItemTrank>() {
-        override fun load(itemDescriptor: ItemDescriptor): ItemTrank {
-            return ItemTrank(SpellManager[itemDescriptor.name])
+data class ItemTrank(val spell: Spell, val level: Int, val degree: Int): Entity(
+        spell["Trank"]!!.name ?: spell["Spell"]!!.name!!) { //TODO Make better Trank-Names
+    override fun genPdfDesc(document: Document) {
+        with(document){
+            val table = Table(2)
+            table.addCell("Zauberstufe")
+            table.addCell(level.toString())
+            table.addCell("Zaubergrad")
+            table.addCell(degree.toString())
+            add(table)
+            add(Paragraph(spell["Trank"]!!.text))
         }
     }
+
+    companion object : ItemFactory<ItemTrank>() {
+        override fun load(itemDescriptor: ItemDescriptor): ItemTrank {
+            val trankDescrptor = itemDescriptor as ItemTrankDescriptor
+            println("Loading Trank: ${itemDescriptor.name}")
+            val zaubername = itemDescriptor.name.substringAfterLast(") ").replace(" \\d+ GM".toRegex(), "")
+            println("Zaubername $zaubername")
+            return ItemTrank(SpellManager[zaubername], trankDescrptor.level, trankDescrptor.degree)
+        }
+    }
+
+    class ItemTrankDescriptor(name: String, category: String, val level: Int, val degree: Int): ItemDescriptor(name, category)
 }

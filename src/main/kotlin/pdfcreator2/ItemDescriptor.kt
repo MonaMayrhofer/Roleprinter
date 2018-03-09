@@ -16,4 +16,8 @@ package pdfcreator2/*
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-data class ItemDescriptor(val name: String, val category: String)
+open class ItemDescriptor(val name: String, val category: String){
+    override fun toString(): String {
+        return "ItemDescriptor[$name, $category]"
+    }
+}

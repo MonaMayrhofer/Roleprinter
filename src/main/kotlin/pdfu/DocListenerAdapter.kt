@@ -16,31 +16,30 @@
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package pdfcreator2
+package pdfu
 
+import com.itextpdf.text.DocListener
+import com.itextpdf.text.Element
+import com.itextpdf.text.Rectangle
 
-data class Spell(
-    val name: String,
-    val school: String,
-    val domain: String,
-    val level: String,
-    val time: String,
-    val components: String,
-    val range: String,
-    val target: String,
-    val duration: String,
-    val savingThrow: String,
-    val resistance: String,
-    private val description: Map<String, SpellDescription>
-){
-    fun getDescriptionFor(type: String): SpellDescription{
-        if(!description.containsKey(type))
-            throw Exception("Spell '$name' doesn't contain a description of type '$type'!")
-        return description[type]!!
-    }
-    operator fun get(type: String): SpellDescription{
-        return getDescriptionFor(type)
-    }
+open class DocListenerAdapter : DocListener {
+    override fun open() = Unit
+
+    override fun setPageCount(pageN: Int) = Unit
+
+    override fun setMargins(marginLeft: Float, marginRight: Float, marginTop: Float, marginBottom: Float): Boolean = true
+
+    override fun setMarginMirroring(marginMirroring: Boolean): Boolean = true
+
+    override fun setMarginMirroringTopBottom(marginMirroringTopBottom: Boolean): Boolean = true
+
+    override fun setPageSize(pageSize: Rectangle?): Boolean = true
+
+    override fun newPage(): Boolean = true
+
+    override fun resetPageCount() = Unit
+
+    override fun add(element: Element?): Boolean = true
+
+    override fun close() = Unit
 }
-
-data class SpellDescription(val text: String, val name: String?)

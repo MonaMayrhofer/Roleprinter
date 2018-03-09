@@ -33,6 +33,8 @@ dependencies {
     compile "com.itextpdf:kernel:$itext_version"
     compile "com.itextpdf:io:${itext_version}"
     compile "com.itextpdf:layout:${itext_version}"
+    compile 'org.slf4j:slf4j-api:1.8.0-beta1'
+    compile 'org.slf4j:slf4j-log4j12:1.8.0-beta1'
 }
 
 compileKotlin {

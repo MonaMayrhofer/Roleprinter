@@ -29,7 +29,7 @@ abstract class FromFileManager<K, T>(private val startDirectory: Path) : LazyMan
 
     final override fun load(name: K): T {
         return findFile(name).toFile().useLines{
-            parse(it)
+            parse(it, name)
         }
     }
 
@@ -48,5 +48,5 @@ abstract class FromFileManager<K, T>(private val startDirectory: Path) : LazyMan
 
     abstract fun accept(descriptor: K, file: File): Boolean
 
-    abstract fun parse(lines: Sequence<String>): T
+    abstract fun parse(lines: Sequence<String>, name: K): T
 }

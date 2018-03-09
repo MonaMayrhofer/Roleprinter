@@ -18,6 +18,7 @@
 
 package pdfcreator2
 
+import com.itextpdf.layout.Document
 import items.Entity
 
 /*
@@ -38,4 +39,8 @@ import items.Entity
  *     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-data class Card(val item: Entity)
+data class Card(val item: Entity) {
+    fun genPdf(document: Document) {
+        item.genPdf(document)
+    }
+}

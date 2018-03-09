@@ -18,4 +18,13 @@
 
 package items
 
-abstract class Entity
+import com.itextpdf.layout.Document
+import com.itextpdf.layout.element.Paragraph
+
+abstract class Entity(val itemName: String) {
+    fun genPdf(document: Document){
+        document.add(Paragraph(itemName))
+        genPdfDesc(document)
+    }
+    abstract fun genPdfDesc(document: Document)
+}

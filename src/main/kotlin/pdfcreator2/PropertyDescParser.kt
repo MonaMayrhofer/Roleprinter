@@ -19,8 +19,14 @@
 package pdfcreator2
 
 object PropertyDescParser {
-    fun parsePropertyDesc(lines: Sequence<String>, expected: List<String>): Pair<Map<String, String>, Map<String, String>> {
+    fun parsePropertyDesc(lines: Sequence<String>, expected: List<String>, name: String): Pair<Map<String, String>, Map<String, SpellDescription>> {
         val startMillis = System.currentTimeMillis()
+
+        val headerSplitRegex = "\\n(?= *--- *\\w+(:? ?\\[.*\\])? *--- *\\n)".toRegex()
+        val headerRegex = " *--- *\\w+(:? ?\\[.*\\])? *--- *".toRegex()
+        val headerNameSplitRegex = "\\]?( *--- *)|:? *\\[".toRegex()
+
+        println("\n---Trank---\n".contains(headerSplitRegex))
 
         val intermediate = lines.flatMap { line ->
             line.split(";").filter { !it.trim().isEmpty() }.map { field ->
@@ -35,11 +41,23 @@ object PropertyDescParser {
         val parts = intermediate.first.
                 mapNotNull { if(it.second==null) null else it.first to it.second!! }.toMap()
         val descriptionMap = intermediate.second.joinToString(separator = "\n") { it.first.trim() }
-                .split("\\n(?= *--- *\\w+ *--- *\\n)".toRegex())
+                .split(headerSplitRegex)
                 .map {
-            val descLines = it.split("\n")
-                    descLines[0].replace("-","").trim() to descLines.subList(1, descLines.size)
-                            .joinToString(" ")
+                    println("ONEMAP!!!")
+                    val descLines = it.split("\n")
+                    val desc = descLines.subList(1, descLines.size).joinToString(" ")
+                    val firstLine = descLines[0]
+                    println("FirstLine: $firstLine")
+                    if(!firstLine.matches(headerRegex)) {
+                        println("Generic Description")
+                        "Spell" to SpellDescription(desc, name)
+                    }else {
+                        val headerFields = firstLine.split(headerNameSplitRegex).filterNot { it.isEmpty() }
+                        val descCategory = headerFields[0]
+                        val descName = headerFields.getOrNull(1).takeUnless { it?.trim()?.isEmpty() ?: false }
+                        println("Got: $descName of $descCategory")
+                        descCategory to SpellDescription(desc, descName)
+                    }
         }.toMap()
 
         println("PropertyDescParser parsed file in: ${System.currentTimeMillis()-startMillis}ms")
