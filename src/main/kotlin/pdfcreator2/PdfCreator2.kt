@@ -33,26 +33,33 @@ class PdfCreator2(itemListFileName: Path) {
     fun getItemDescriptor(category: String, properties: String, name: String): ItemDescriptor{
         val propertyMap = properties.replace(".", "").split(", ").mapNotNull {
             val propertyFields = it.split(" ")
+            if(propertyFields.size == 1)
+                return@mapNotNull "Typ" to propertyFields[0]
             val value = propertyFields[1].toIntOrNull()
             if (value == null) null
             else
                 propertyFields[0] to propertyFields[1].toInt()
         }.toMap()
 
-        val itemClass = Class.forName("items.Item${category}\$Item${category}Descriptor").kotlin
-        val constructor = itemClass.constructors.first()
-        val paramterPair = constructor.parameters.
-                partition { it.findAnnotation<ItemProperty>() == null }
-        val constructorParameters = paramterPair.first.map { it to when(it.name){
+        try {
+            val itemClass = Class.forName("items.Item${category}\$Item${category}Descriptor").kotlin
+            val constructor = itemClass.constructors.first()
+            val paramterPair = constructor.parameters.partition { it.findAnnotation<ItemProperty>() == null }
+            val constructorParameters = paramterPair.first.map {
+                it to when (it.name) {
                     "name" -> name
                     "category" -> category
                     else -> throw Exception("${itemClass.simpleName}-Constructor has unparsable Parameter ${it.name}")
-        } }.union(paramterPair.second.map {
-            it to propertyMap[it.findAnnotation<ItemProperty>()!!.name]
-        }).toMap()
+                }
+            }.union(paramterPair.second.map {
+                it to propertyMap[it.findAnnotation<ItemProperty>()!!.name]
+            }).toMap()
 
-        val trankDescriptor = constructor.callBy(constructorParameters) as ItemDescriptor
-        return trankDescriptor
+            val trankDescriptor = constructor.callBy(constructorParameters) as ItemDescriptor
+            return trankDescriptor
+        }catch (e: ClassNotFoundException){
+            throw Exception("Now valid ItemDescriptor was found for '$category'. Searched @ '${e.message}'", e)
+        }
     }
 
     init {
