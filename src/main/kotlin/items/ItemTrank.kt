@@ -21,24 +21,18 @@ package items
 import com.itextpdf.layout.Document
 import com.itextpdf.layout.element.Paragraph
 import pdfcreator2.*
-import pdfu.cell
-import pdfu.table
 
 data class ItemTrank(val spell: Spell, val level: Int, val degree: Int, override val filename: String): Item(
         spell["Trank"].name ?: spell["Spell"].name!!) { //TODO Make better Trank-Names
 
-
     override fun genPdfDesc(document: Document) {
         with(document){
-            table(2){
-                cell("Zauberstufe")
-                cell(level.toString())
-                cell("Zaubergrad")
-                cell(degree.toString())
-                cell("Dauer")
-                cell(spell.duration)
-            }
-            add(Paragraph(spell["Trank"].text).setFontSize(9f))
+            propertyTable(
+                    "Zauberstufe" to level.toString(),
+                    "Zaubergrad" to degree.toString(),
+                    "Dauer" to spell.duration
+            )
+            add(Paragraph(spell["Trank"].text).setFontSize(9f).setFont("fondamento").setFixedLeading(10f))
         }
     }
 
@@ -50,5 +44,7 @@ data class ItemTrank(val spell: Spell, val level: Int, val degree: Int, override
         }
     }
 
-    class ItemTrankDescriptor(name: String, category: String, val level: Int, val degree: Int): ItemDescriptor(name, category)
+    class ItemTrankDescriptor(name: String, category: String,
+                              @ItemProperty("ZS") val level: Int,
+                              @ItemProperty("Grad") val degree: Int): ItemDescriptor(name, category)
 }

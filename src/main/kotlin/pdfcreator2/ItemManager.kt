@@ -22,6 +22,8 @@ import items.Item
 import java.io.File
 import java.io.IOException
 import java.nio.file.Paths
+import kotlin.reflect.KClass
+import kotlin.reflect.full.companionObjectInstance
 
 /*
  * Roleprinter - Print itemcards for your Pathfinder campaign.
@@ -50,10 +52,17 @@ object ItemManager : LazyManager<ItemDescriptor, Item>() {
     }
 
     override fun load(name: ItemDescriptor): Item {
-        if(loaders.containsKey(name.category)) {
-            return loaders[name.category]!!.load(name)
+
+        if(!loaders.containsKey(name.category)){
+            reflectLoader(name.category)
         }
 
+        if(loaders.containsKey(name.category)) {
+            return loaders[name.category]!!.load(name)
+        }else{
+            throw IOException("Unknown Category: ${name.category}")
+        }
+/*
         val files = Paths.get("items/").toFile().walkTopDown().filter { it.name == "$name.txt" }
         if(files.count() > 1){
             throw IOException("$name is ambiguously given")
@@ -61,10 +70,12 @@ object ItemManager : LazyManager<ItemDescriptor, Item>() {
             throw IOException("$name was not found")
         }
         val file = files.first()
-        return loadItem(file)
+        return loadItem(file)*/
     }
 
-    fun loadItem(file: File): Item {
-        TODO()
+    fun reflectLoader(category: String){
+        val loaderClass = Class.forName("items.Item${category}")
+        registerLoader(category, loaderClass.kotlin.companionObjectInstance as ItemFactory<Item>)
+
     }
 }

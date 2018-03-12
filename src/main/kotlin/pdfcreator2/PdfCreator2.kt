@@ -17,38 +17,51 @@
  */
 
 package pdfcreator2
-import items.ItemTrank
 import pdfu.document
 import pdfu.page
 import java.nio.file.Path
+import java.nio.file.Paths
+import kotlin.reflect.full.findAnnotation
 
 
 class PdfCreator2(itemListFileName: Path) {
 
-    val itemsJob: ItemsJob = ItemsJob(itemListFileName)
+    private val itemsJob: ItemsJob = ItemsJob(itemListFileName)
 
-    val cards: List<Card>
+    private val cards: List<Card>
+
+    fun getItemDescriptor(category: String, properties: String, name: String): ItemDescriptor{
+        val propertyMap = properties.replace(".", "").split(", ").mapNotNull {
+            val propertyFields = it.split(" ")
+            val value = propertyFields[1].toIntOrNull()
+            if (value == null) null
+            else
+                propertyFields[0] to propertyFields[1].toInt()
+        }.toMap()
+
+        val itemClass = Class.forName("items.Item${category}\$Item${category}Descriptor").kotlin
+        val constructor = itemClass.constructors.first()
+        val paramterPair = constructor.parameters.
+                partition { it.findAnnotation<ItemProperty>() == null }
+        val constructorParameters = paramterPair.first.map { it to when(it.name){
+                    "name" -> name
+                    "category" -> category
+                    else -> throw Exception("${itemClass.simpleName}-Constructor has unparsable Parameter ${it.name}")
+        } }.union(paramterPair.second.map {
+            it to propertyMap[it.findAnnotation<ItemProperty>()!!.name]
+        }).toMap()
+
+        val trankDescriptor = constructor.callBy(constructorParameters) as ItemDescriptor
+        return trankDescriptor
+    }
 
     init {
         val startMillis = System.currentTimeMillis()
 
-        ItemManager.registerLoader("Trank", ItemTrank)
-
+        //Parse itemlist.txt into cards
         cards = itemsJob.itemJobs.flatMap {job ->
             val fields = job.itemName.split(" \\(|\\) ".toRegex(), limit = 3)
-            val itemDescriptor = if(fields[0] == "Trank"){
-                val properties = fields[1].replace(".","").split(", ").mapNotNull {
-                    val propertyFields = it.split(" ")
-                    val value = propertyFields[1].toIntOrNull()
-                    if(value == null) null
-                    else
-                    propertyFields[0] to propertyFields[1].toInt()
-                }.toMap()
-                ItemTrank.ItemTrankDescriptor(job.itemName, "Trank", properties["ZS"]!!, properties["Grad"]!!)
-            }else{
-                ItemDescriptor(job.itemName, "")
-            }
-
+            val itemDescriptor = getItemDescriptor(fields[0], fields[1], fields[2])
             val item = ItemManager[itemDescriptor]
 
             Array(job.itemAmount){
@@ -56,7 +69,9 @@ class PdfCreator2(itemListFileName: Path) {
             }.asIterable()
         }
 
-        document {
+        //Create PDF
+        val fonts = Paths.get("font").toFile().walkTopDown().filter { it.extension == "ttf" }.map { it.absolutePath }.toList()
+        document(fonts) {
             cards.forEach {
                 page({
                     it.genPdf(this)

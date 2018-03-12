@@ -23,34 +23,47 @@ import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
 import com.itextpdf.layout.Document
 import com.itextpdf.layout.borders.Border
-import com.itextpdf.layout.element.AreaBreak
-import com.itextpdf.layout.element.Cell
-import com.itextpdf.layout.element.Paragraph
-import com.itextpdf.layout.element.Table
+import com.itextpdf.layout.element.*
+import com.itextpdf.layout.font.FontProvider
+import com.itextpdf.layout.font.FontSet
 import com.itextpdf.layout.property.AreaBreakType
+import com.itextpdf.layout.property.Property
 import com.itextpdf.layout.property.UnitValue
+import java.nio.file.Paths
 
 
 fun cmToPt(cm: Float): Float {
     return 0.393701f*cm*72f
 }
 
-fun document(content: Pair<Document, PdfDocument>.()->Unit){
-
+fun document(fontList: List<String>? = null, content: Pair<Document, PdfDocument>.()->Unit){
     val w = pdfu.cmToPt(6.35f)
     val h = pdfu.cmToPt(8.89f)
     val margin = pdfu.cmToPt(0.3f)
-    val wrtr = PdfWriter("out.pdf")
-    val pdfDoc = PdfDocument(wrtr)
+    val pdfDoc = PdfDocument(PdfWriter("out.pdf"))
     val doc = Document(pdfDoc, PageSize(w, h))
     doc.setMargins(margin, margin, margin, margin)
-    //val doc = Document(Rectangle(w, h), margin, margin, margin, margin)
-    //val wrtr = PdfWriter.getInstance(doc, FileOutputStream("out.pdf"))
-    //doc.open()
 
-    Pair(doc, pdfDoc).content()
+    if(fontList != null){
+        doc.fontProvider = FontProvider(FontSet())
+        print("Loading fonts: ")
+        fontList.forEach {
+            print(".")
+            doc.fontProvider.addFont(it)
+        }
+        println()
+        println("Fonts: ")
+        doc.fontProvider.fontSet.fonts.groupBy { it.descriptor.familyNameLowerCase }.forEach { family, fonts ->
+            println(" - '$family':")
+            fonts.forEach {
+                println("       - ${it.descriptor.fontNameLowerCase}")
+            }
+        }
+    }
 
-    doc.close()
+    doc.use {
+        Pair(doc, pdfDoc).content()
+    }
 }
 
 fun Pair<Document, PdfDocument>.page(content: Document.()->Unit, error: ()->Unit){
@@ -71,16 +84,25 @@ fun Document.table(numColumns: Int, border: Border? = Border.NO_BORDER, content:
     add(table)
 }
 
-fun Table.cell(content: String, border: Border? = Border.NO_BORDER){
+fun Table.cell(content: IBlockElement, border: Border? = null): Cell{
     val cell = Cell()
-    cell.add(Paragraph(content))
-    cell.setBorder(border)
+    cell.add(content)
+    if(border == null)
+        cell.setBorder(this.getProperty(Property.BORDER))
+    else
+        cell.setBorder(border)
     addCell(cell)
+    return cell
 }
 
-fun Table.cell(border: Border? = Border.NO_BORDER, content: Cell.()->Unit){
+fun Table.cell(content: String, border: Border? = null): Cell{
+    return cell(Paragraph(content), border)
+}
+
+fun Table.cell(border: Border? = Border.NO_BORDER, content: Cell.()->Unit): Cell{
     val cell = Cell()
     cell.content()
     cell.setBorder(border)
     addCell(cell)
+    return cell
 }
