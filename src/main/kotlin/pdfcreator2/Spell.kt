@@ -35,7 +35,7 @@ data class Spell(
 ){
     fun getDescriptionFor(type: String): SpellDescription{
         if(!description.containsKey(type))
-            throw Exception("Spell '$name' doesn't contain a description of type '$type'!")
+            throw Exception("Spell '$name' doesn't contain a description of type '$type'. Available types: ${description.keys.joinToString()}")
         return description[type]!!
     }
     operator fun get(type: String): SpellDescription{
