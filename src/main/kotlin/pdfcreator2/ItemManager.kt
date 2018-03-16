@@ -74,7 +74,10 @@ object ItemManager : LazyManager<ItemDescriptor, Item>() {
     }
 
     fun reflectLoader(category: String){
-        val loaderClass = Class.forName("items.Item${category}")
+        val itemFactoryName = "items.Item${category}"
+        val loaderClass = Class.forName(itemFactoryName)
+        if(loaderClass.kotlin.companionObjectInstance == null)
+            throw Exception("Could not find ItemLoader for '$category'. Searched at '$itemFactoryName'")
         registerLoader(category, loaderClass.kotlin.companionObjectInstance as ItemFactory<Item>)
 
     }

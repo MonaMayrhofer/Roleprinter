@@ -30,7 +30,8 @@ class PdfCreator2(itemListFileName: Path) {
 
     private val cards: List<Card>
 
-    fun getItemDescriptor(category: String, properties: String, name: String): ItemDescriptor{
+    fun getItemDescriptor(category: String, properties: String, rawName: String): ItemDescriptor{
+        val name = rawName.substringBefore("[").trim()
         val propertyMap = properties.replace(".", "").split(", ").mapNotNull {
             val propertyFields = it.split(" ")
             if(propertyFields.size == 1)
@@ -55,8 +56,7 @@ class PdfCreator2(itemListFileName: Path) {
                 it to propertyMap[it.findAnnotation<ItemProperty>()!!.name]
             }).toMap()
 
-            val trankDescriptor = constructor.callBy(constructorParameters) as ItemDescriptor
-            return trankDescriptor
+            return constructor.callBy(constructorParameters) as ItemDescriptor
         }catch (e: ClassNotFoundException){
             throw Exception("Now valid ItemDescriptor was found for '$category'. Searched @ '${e.message}'", e)
         }
@@ -67,13 +67,10 @@ class PdfCreator2(itemListFileName: Path) {
 
         //Parse itemlist.txt into cards
         cards = itemsJob.itemJobs.flatMap {job ->
-            println(job.itemName)
             val categorySplit = job.itemName.split(" ", limit = 2)
             val category = categorySplit[0]
             val properties = job.itemName.substringBeforeLast(")").substringAfter("(")
             val rest = categorySplit[1].split("\\(.*\\)".toRegex())
-            println(rest)
-
 
             val itemDescriptor = getItemDescriptor(category, properties, rest.joinToString(separator = ""))
             val item = ItemManager[itemDescriptor]

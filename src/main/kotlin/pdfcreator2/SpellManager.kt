@@ -37,7 +37,7 @@ object SpellManager : FromFileManager<String, Spell>("zauber") {
                 "Rettungswurf",
                 "Zauberresistenz")
 
-        val (parts, description) = PropertyDescParser.parsePropertyDesc(lines, expected, name)
+        val (parts, description) = PropertyDescParser.parsePropertyDesc(lines, expected, name, "Spell")
 
         return Spell(
                 name,

@@ -18,15 +18,17 @@
 
 package pdfcreator2
 
+data class Description(val text: String, val name: String?)
+
 object PropertyDescParser {
-    fun parsePropertyDesc(lines: Sequence<String>, expected: List<String>, name: String): Pair<Map<String, String>, Map<String, SpellDescription>> {
+    fun parsePropertyDesc(lines: Sequence<String>, expected: List<String>, name: String, standardDescription: String): Pair<Map<String, String>, Map<String, Description>> {
         val startMillis = System.currentTimeMillis()
 
         val headerSplitRegex = "\\n(?= *--- *\\w+(:? ?\\[.*\\])? *--- *\\n)".toRegex()
         val headerRegex = " *--- *\\w+(:? ?\\[.*\\])? *--- *".toRegex()
         val headerNameSplitRegex = "\\]?( *--- *)|:? *\\[".toRegex()
 
-        val intermediate = lines.flatMap { line ->
+        val intermediate = lines.filterNot { it.trim().startsWith("#") }.flatMap { line ->
             line.split(";").filter { !it.trim().isEmpty() }.map { field ->
                 val arr = field.split(":", limit = 2)
                 when {
@@ -45,12 +47,12 @@ object PropertyDescParser {
                     val desc = descLines.subList(1, descLines.size).joinToString(" ")
                     val firstLine = descLines[0]
                     if(!firstLine.matches(headerRegex)) {
-                        "Spell" to SpellDescription(desc, name)
+                        standardDescription to Description(desc, name)
                     }else {
                         val headerFields = firstLine.split(headerNameSplitRegex).filterNot { it.isEmpty() }
                         val descCategory = headerFields[0]
                         val descName = headerFields.getOrNull(1).takeUnless { it?.trim()?.isEmpty() ?: false }
-                        descCategory to SpellDescription(desc, descName)
+                        descCategory to Description(desc, descName)
                     }
         }.toMap()
 

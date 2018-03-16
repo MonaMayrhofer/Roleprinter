@@ -31,16 +31,15 @@ data class Spell(
     val duration: String,
     val savingThrow: String,
     val resistance: String,
-    private val description: Map<String, SpellDescription>
+    private val description: Map<String, Description>
 ){
-    fun getDescriptionFor(type: String): SpellDescription{
+    fun getDescriptionFor(type: String): Description{
         if(!description.containsKey(type))
             throw Exception("Spell '$name' doesn't contain a description of type '$type'. Available types: ${description.keys.joinToString()}")
         return description[type]!!
     }
-    operator fun get(type: String): SpellDescription{
+    operator fun get(type: String): Description{
         return getDescriptionFor(type)
     }
 }
 
-data class SpellDescription(val text: String, val name: String?)

@@ -4,13 +4,9 @@ Armor{
     Plattenpanzer [Meisterarbeit] Preis 750 GM
 }
 Salvage{
-    14 x Rucksack (2 gp, 2 lb)
+    14x Rucksack (2 gp, 2 lb)
     Schleifstein (10 gp)
     35 x Hammer (5 sp, 2 lb)
-    2 x große Truhe (30 gp)
-    Edles Outfit (75 gp, 10 lb)
-    Pavillonzelt (100 gp, 300 lb)
-    Kleiner Teppich (10 gp)
-    24 x Kleine Jagdfalle (4 gp, 5 lb)
-    Waffenregal (30 gp)
+    2 x Truhe (30 gp)
+    Zelt (100 gp, 300 lb)
 }
