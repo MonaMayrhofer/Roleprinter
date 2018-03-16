@@ -1,6 +1,16 @@
 --Kommentar
 --Achtung Leerzeile
-
-Trank (Grad 1., ZS 1) Leichte Wunden heilen 50 GM
-Trank (Grad 1., ZS 1) Schmieren 50 GM
-Trank (Grad 1., ZS 1) Shillelagh 50 GM
+Armor{
+    Plattenpanzer [Meisterarbeit] Preis 750 GM
+}
+Salvage{
+    14 x Rucksack (2 gp, 2 lb)
+    Schleifstein (10 gp)
+    35 x Hammer (5 sp, 2 lb)
+    2 x große Truhe (30 gp)
+    Edles Outfit (75 gp, 10 lb)
+    Pavillonzelt (100 gp, 300 lb)
+    Kleiner Teppich (10 gp)
+    24 x Kleine Jagdfalle (4 gp, 5 lb)
+    Waffenregal (30 gp)
+}

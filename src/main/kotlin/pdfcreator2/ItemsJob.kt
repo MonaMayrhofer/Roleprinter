@@ -43,6 +43,10 @@ class ItemsJob(itemsJobFile: Path) {
     val itemJobs: List<ItemJob>
 
     init {
+
+        var currentCategory: String? = null
+
+        val quantifierRegex = "^[0-9]+x .+".toRegex()
         itemJobs = itemsJobFile.toFile().inputStream().bufferedReader().useLines { it.map { line ->
             if(line.startsWith("--"))
                 return@map null
@@ -50,15 +54,30 @@ class ItemsJob(itemsJobFile: Path) {
             if(line.trim().isEmpty())
                 return@map null
 
-            if(line.contains("^[0-9]+x .+".toRegex())){
+            if(line.trim().endsWith("{")){
+                if(currentCategory != null){
+                    throw IllegalStateException("Cannot open Brackets inside of brackets!")
+                }
+                currentCategory = line.substringBefore("{")
+                return@map null
+            }
+
+            if(line.trim().endsWith("}")){
+                if(currentCategory == null){
+                    throw IllegalStateException("Cannot close Brackts before opening one.")
+                }
+                currentCategory = null
+                return@map null
+            }
+            if(line.contains(quantifierRegex)){
                 val nbr = line.substringBefore("x ").toInt()
                 val name = line.substringAfter("x ").trim()
                 if(name.isEmpty())
                     null
                 else
-                    ItemJob(name, nbr)
+                    ItemJob((currentCategory?.plus(" ")?:"") + name, nbr)
             }else{
-                ItemJob(line.trim(), 1)
+                ItemJob((currentCategory?.plus(" ")?:"") + line.trim(), 1)
             }
         }.filterNotNull().toList() }
     }

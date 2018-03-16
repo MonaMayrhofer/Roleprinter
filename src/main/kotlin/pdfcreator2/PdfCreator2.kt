@@ -67,8 +67,15 @@ class PdfCreator2(itemListFileName: Path) {
 
         //Parse itemlist.txt into cards
         cards = itemsJob.itemJobs.flatMap {job ->
-            val fields = job.itemName.split(" \\(|\\) ".toRegex(), limit = 3)
-            val itemDescriptor = getItemDescriptor(fields[0], fields[1], fields[2])
+            println(job.itemName)
+            val categorySplit = job.itemName.split(" ", limit = 2)
+            val category = categorySplit[0]
+            val properties = job.itemName.substringBeforeLast(")").substringAfter("(")
+            val rest = categorySplit[1].split("\\(.*\\)".toRegex())
+            println(rest)
+
+
+            val itemDescriptor = getItemDescriptor(category, properties, rest.joinToString(separator = ""))
             val item = ItemManager[itemDescriptor]
 
             Array(job.itemAmount){
