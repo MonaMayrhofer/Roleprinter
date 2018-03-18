@@ -20,6 +20,7 @@ package pdfcreator2
 
 import com.github.kittinunf.fuel.httpGet
 import items.ItemSalvage
+import org.jsoup.HttpStatusException
 import org.jsoup.Jsoup
 import java.nio.charset.Charset
 import java.nio.file.Paths
@@ -29,21 +30,37 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
 object PRDSalvageStripper {
-    fun strip(name: String): ItemSalvage{
+    fun strip(rawName: String): ItemSalvage{
+        val name = rawName
+                .replace("ü","ue")
+                .replace("ä","ae")
+                .replace("ö","oe")
         println("Stripping $name")
-        val webUrl = "http://prd.5footstep.de/Grundregelwerk/Ausruestung/$name"
-        Jsoup.connect(webUrl).get().run {
-            val page = select("#page.page")
-            val props = page.select("table td").drop(1).map { it.html().trim() }
-            val desc = page.select("p").html()
-                    .substringAfter("</strong>")
-                    .substringBefore("<br>")
-                    .replace("&nbsp;"," ")
-                    .replace("<a .*\" *>".toRegex(), "")
-                    .replace("</a>","")
-                    .trim()
-            return ItemSalvage(props[0], props[1], desc, name, webUrl)
+        //val webUrl = "http://prd.5footstep.de/Grundregelwerk/Ausruestung/$name"
+
+        val urls = listOf("http://prd.5footstep.de/Grundregelwerk/Ausruestung/",
+                "http://prd.5footstep.de/Ausruestungskompendium/Ausruestung/")
+        for (url in urls) {
+            val currUrl = url+name
+            try{
+                Jsoup.connect(currUrl).get().run {
+                    val page = select("#page.page")
+                    val props = page.select("table td").drop(1).map { it.html().trim() }
+                    val desc = page.select("p").html()
+                            .substringAfter("</strong>")
+                            .substringBefore("<br>")
+                            .replace("&nbsp;", " ")
+                            .replace("<a .*\" *>".toRegex(), "")
+                            .replace("</a>", "")
+                            .trim()
+                    return ItemSalvage(props[0], props[1], desc, name, currUrl)
+                }
+            }catch(e: HttpStatusException){
+                println("Couldn't find $name in $url")
+            }
         }
+        throw Exception("Item $name is not in known URLS!")
+
     }
     fun saveStrippedItem(item: ItemSalvage){
         val path = Paths.get("items/stripped/${item.itemName}.item").toFile()

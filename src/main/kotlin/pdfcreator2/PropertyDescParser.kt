@@ -24,7 +24,7 @@ object PropertyDescParser {
     fun parsePropertyDesc(lines: Sequence<String>, expected: List<String>, name: String, standardDescription: String): Pair<Map<String, String>, Map<String, Description>> {
         val startMillis = System.currentTimeMillis()
 
-        val headerSplitRegex = "\\n(?= *--- *\\w+(:? ?\\[.*\\])? *--- *\\n)".toRegex()
+        val headerSplitRegex = "\\n(?= *--- *\\w+(:? ?\\[.*\\])? *--- *)".toRegex()
         val headerRegex = " *--- *\\w+(:? ?\\[.*\\])? *--- *".toRegex()
         val headerNameSplitRegex = "\\]?( *--- *)|:? *\\[".toRegex()
 
@@ -40,6 +40,7 @@ object PropertyDescParser {
         }.partition { it.second != null }
         val parts = intermediate.first.
                 mapNotNull { if(it.second==null) null else it.first to it.second!! }.toMap()
+        var standardDesc = ""
         val descriptionMap = intermediate.second.joinToString(separator = "\n") { it.first.trim() }
                 .split(headerSplitRegex)
                 .map {
@@ -47,6 +48,7 @@ object PropertyDescParser {
                     val desc = descLines.subList(1, descLines.size).joinToString(" ")
                     val firstLine = descLines[0]
                     if(!firstLine.matches(headerRegex)) {
+                            standardDesc = desc
                         standardDescription to Description(desc, name)
                     }else {
                         val headerFields = firstLine.split(headerNameSplitRegex).filterNot { it.isEmpty() }
@@ -54,7 +56,19 @@ object PropertyDescParser {
                         val descName = headerFields.getOrNull(1).takeUnless { it?.trim()?.isEmpty() ?: false }
                         descCategory to Description(desc, descName)
                     }
-        }.toMap()
+        }.map { (name, desc) ->
+                    if(desc.text.isEmpty())
+                        name to Description(standardDesc, desc.name)
+                    else
+                    name to desc
+                }.toMap()
+
+
+    //TODO WHY IS THIS NOT WORKING!
+        val leftFields = expected.filter { descriptionMap.containsKey(it) }
+        if(leftFields.isNotEmpty()){
+            throw Exception("Expected fields [$leftFields] were not filled out in '$name'")
+        }
 
         println("PropertyDescParser parsed input '$name' in: ${System.currentTimeMillis()-startMillis}ms")
         return Pair(parts, descriptionMap)

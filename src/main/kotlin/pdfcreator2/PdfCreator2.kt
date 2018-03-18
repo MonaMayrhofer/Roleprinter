@@ -31,7 +31,16 @@ class PdfCreator2(itemListFileName: Path) {
     private val cards: List<Card>
 
     fun getItemDescriptor(category: String, properties: String, rawName: String): ItemDescriptor{
-        val name = rawName.substringBefore("[").trim()
+        val priceRegex = "\\d+ [GSKPC][MP]|[gskpc][mp]".toRegex()
+        val weightRegex = "[\\d½]+ [Pp]fd.?".toRegex()
+        val footNoteRegex = "\\d\$".toRegex()
+
+        val name = rawName.
+                replace(priceRegex, "")
+                .replace(weightRegex, "")
+                .replace(footNoteRegex, "")
+                .substringBefore("[").trim()
+        //println("$rawName -> $name")
         val propertyMap = properties.replace(".", "").split(", ").mapNotNull {
             val propertyFields = it.split(" ")
             if(propertyFields.size == 1)
